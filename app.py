@@ -106,7 +106,12 @@ import random
 
 # Liste de mots possibles
 mots_possibles = ["python", "famille", "ordinateur", "jeu", "tom", "arcade", "chat", "pizza", "robot"]
-mot_secret = st.session_state.get("mot_secret", random.choice(mots_possibles))
+
+# Initialiser le mot secret UNE seule fois
+if "mot_secret" not in st.session_state:
+    st.session_state.mot_secret = random.choice(mots_possibles)
+
+mot_secret = st.session_state.mot_secret
 
 # Dessins ASCII du pendu
 pendu_etapes = [
@@ -198,6 +203,6 @@ if "_" not in mot_affiche:
 # Défaite
 if st.session_state.erreurs >= len(pendu_etapes) - 1:
     st.error(f"💀 Pendu ! Le mot était **{mot_secret}**.")
-    st.session_state.mot_secret = random.choice(mots_possibles)
+    st.session_state.mot_secret = random.choice(mots_possibles)  # Nouveau mot
     st.session_state.lettres_trouvees = []
     st.session_state.erreurs = 0
