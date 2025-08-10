@@ -100,15 +100,104 @@ if st.button("Jouer"):
         st.error("Perdu 😢")
 
 # 3️⃣ Pendu
-st.subheader("🪢 Jeu du pendu")
-mot_secret = "python"
+st.subheader("🪢 Jeu du pendu amélioré")
+
+import random
+
+# Liste de mots possibles
+mots_possibles = ["python", "famille", "ordinateur", "jeu", "tom", "arcade", "chat", "pizza", "robot"]
+mot_secret = st.session_state.get("mot_secret", random.choice(mots_possibles))
+
+# Dessins ASCII du pendu
+pendu_etapes = [
+    """
+      +---+
+          |
+          |
+          |
+         ===""",
+    """
+      +---+
+      O   |
+          |
+          |
+         ===""",
+    """
+      +---+
+      O   |
+      |   |
+          |
+         ===""",
+    """
+      +---+
+      O   |
+     /|   |
+          |
+         ===""",
+    """
+      +---+
+      O   |
+     /|\\  |
+          |
+         ===""",
+    """
+      +---+
+      O   |
+     /|\\  |
+     /    |
+         ===""",
+    """
+      +---+
+      O   |
+     /|\\  |
+     / \\  |
+         ==="""
+]
+
+# Initialisation
 if "lettres_trouvees" not in st.session_state:
     st.session_state.lettres_trouvees = []
-lettre = st.text_input("Proposez une lettre :").lower()
-if st.button("Proposer"):
-    if lettre and lettre not in st.session_state.lettres_trouvees:
-        st.session_state.lettres_trouvees.append(lettre)
+if "erreurs" not in st.session_state:
+    st.session_state.erreurs = 0
+
+# Affichage mot
 mot_affiche = " ".join([l if l in st.session_state.lettres_trouvees else "_" for l in mot_secret])
-st.write(f"Mot à deviner : {mot_affiche}")
+st.write(f"Mot à deviner : **{mot_affiche}**")
+
+# Affichage dessin pendu
+st.code(pendu_etapes[st.session_state.erreurs])
+
+# Lettres déjà proposées
+lettres_proposees = " ".join(sorted(st.session_state.lettres_trouvees))
+st.write(f"📜 Lettres trouvées : {lettres_proposees if lettres_proposees else 'Aucune'}")
+
+# Proposition de lettre
+lettre = st.text_input("Proposez une lettre :", max_chars=1).lower()
+
+if st.button("Proposer la lettre") and not st.session_state.erreurs >= len(pendu_etapes) - 1:
+    if lettre and lettre.isalpha():
+        if lettre in mot_secret and lettre not in st.session_state.lettres_trouvees:
+            st.session_state.lettres_trouvees.append(lettre)
+            st.success(f"✅ Bien joué, la lettre **{lettre}** est dans le mot !")
+        elif lettre not in mot_secret:
+            st.session_state.erreurs += 1
+            st.error(f"❌ La lettre **{lettre}** n'est pas dans le mot.")
+        else:
+            st.warning(f"⚠️ La lettre **{lettre}** a déjà été proposée.")
+    else:
+        st.warning("⚠️ Entrez une seule lettre valide.")
+
+# Victoire
 if "_" not in mot_affiche:
-    st.success("Bravo ! Vous avez trouvé le mot 🎉")
+    st.balloons()
+    st.success(f"🎉 Bravo ! Tu as trouvé le mot **{mot_secret}** !")
+    st.session_state.mot_secret = random.choice(mots_possibles)
+    st.session_state.lettres_trouvees = []
+    st.session_state.erreurs = 0
+
+# Défaite
+if st.session_state.erreurs >= len(pendu_etapes) - 1:
+    st.error(f"💀 Pendu ! Le mot était **{mot_secret}**.")
+    st.session_state.mot_secret = random.choice(mots_possibles)
+    st.session_state.lettres_trouvees = []
+    st.session_state.erreurs = 0
