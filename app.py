@@ -58,8 +58,8 @@ if st.button("Clique si tu aimes"):
 # --- Section Jeux existants ---
 st.header("🎮 Mes jeux externes")
 jeux = [
-    {"titre": "Petit et Grand", "desc": "A tu fais le meilleure score ? mange le vite.", "lien": "https://replit.com/@tom77puls/totogame?v=1"},
-    {"titre": "Cliquer dessus", "desc": "Touchez-le !", "lien": "https://replit.com/@tom77puls/WonderfulAltruisticBinary?v=1"},
+    {"titre": "cible", "desc": "A tu fais le meilleure score ? tire vite.", "lien": "https://zmwguswsyytnolqexffdfj.streamlit.app/"},
+    {"titre": "RPG", "desc": "Tuez le !", "lien": "https://je7erdurjykggnaagdzyzt.streamlit.app/"},
 ]
 for j in jeux:
     st.subheader(j["titre"])
@@ -112,4 +112,3 @@ mot_affiche = " ".join([l if l in st.session_state.lettres_trouvees else "_" for
 st.write(f"Mot à deviner : {mot_affiche}")
 if "_" not in mot_affiche:
     st.success("Bravo ! Vous avez trouvé le mot 🎉")
-
