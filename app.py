@@ -481,22 +481,28 @@ elif tab == "Jeux internes":
             st.session_state.pendu_hint_used = False
             st.session_state.pendu_lost = False
             save_current_user()
-
-        # Lose
-        if st.session_state.erreurs >= len(pendu_etapes)-1:
-            st.error(f"💀 Pendu ! Le mot était **{st.session_state.mot_secret}**.")
-            st.session_state.pendu_lost = True
-            # Rejouer consumable
-            if st.session_state.consumables.get("rejouer",0) > 0:
-                if st.button("🔄 Utiliser Rejouer pour recommencer (consomme 1)", key="pendu_replay"):
-                    consume_item("rejouer")
-                    st.session_state.mot_secret = random.choice(["python","famille","ordinateur","jeu","tom","arcade","chat","pizza","robot","streamlit"])
-                    st.session_state.lettres_trouvees = []
-                    st.session_state.erreurs = 0
-                    st.session_state.pendu_hint_used = False
-                    st.session_state.pendu_lost = False
-                    st.success("La partie a été réinitialisée (Rejouer utilisé).
-
-
+            
+       # Lose
+if st.session_state.erreurs >= len(pendu_etapes)-1:
+    st.error(f"💀 Pendu ! Le mot était **{st.session_state.mot_secret}**.")
+    st.session_state.pendu_lost = True
+    # Rejouer consumable
+    if st.session_state.consumables.get("rejouer", 0) > 0:
+        if st.button("🔄 Utiliser Rejouer pour recommencer (consomme 1)", key="pendu_replay"):
+            consume_item("rejouer")
+            st.session_state.mot_secret = random.choice(["python","famille","ordinateur","jeu","tom","arcade","chat","pizza","robot","streamlit"])
+            st.session_state.lettres_trouvees = []
+            st.session_state.erreurs = 0
+            st.session_state.pendu_hint_used = False
+            st.session_state.pendu_lost = False
+            st.success("La partie a été réinitialisée (Rejouer utilisé).")
+    else:
+        # Pas de consommable rejouer → reset normal
+        st.session_state.mot_secret = random.choice(["python","famille","ordinateur","jeu","tom","arcade","chat","pizza","robot","streamlit"])
+        st.session_state.lettres_trouvees = []
+        st.session_state.erreurs = 0
+        st.session_state.pendu_hint_used = False
+        st.session_state.pendu_lost = False
+        st.info("Nouvelle partie commencée.")
 
 
