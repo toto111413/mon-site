@@ -10,10 +10,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-st.markdown("<h1 style='text-align:center'>Bienvenue sur mon site de jeux ✨</h1>", unsafe_allow_html=True)
-    name = st.text_input("Quel est votre nom ?")
-    if name:
-        st.success(f"Enchanté, {name} ! 😊")
 # ---------------------------
 # INITIALISATIONS SESSION
 # ---------------------------
@@ -190,6 +186,10 @@ ARTICLES = [
 # ---------------------------
 # MENU / HEADER
 # ---------------------------
+st.markdown("<h1 style='text-align:center'>Bienvenue sur mon site de jeux ✨</h1>", unsafe_allow_html=True)
+    name = st.text_input("Quel est votre nom ?")
+    if name:
+        st.success(f"Enchanté, {name} ! 😊")
 menu_items = ["Accueil", "Jeux externes", "Devine le nombre", "Pierre-Papier-Ciseaux", "Pendu", "Mastermind", "Mots mélangés", "Boutique", "Animal", "Succès"]
 if st.session_state.secret_unlocked:
     menu_items.append("Mini-jeu secret")
