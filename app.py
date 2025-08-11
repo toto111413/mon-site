@@ -60,6 +60,7 @@ st.header("🎮 Mes jeux externes")
 jeux = [
     {"titre": "cible", "desc": "A tu fais le meilleure score ? tire vite.", "lien": "https://zmwguswsyytnolqexffdfj.streamlit.app/"},
     {"titre": "RPG", "desc": "Tuez le !", "lien": "https://je7erdurjykggnaagdzyzt.streamlit.app/"},
+    {"titre": "Quiz", "desc": "répondez !!!", "lien": "https://hyu2irxjzdthppfbix6duf.streamlit.app/"},
 ]
 for j in jeux:
     st.subheader(j["titre"])
