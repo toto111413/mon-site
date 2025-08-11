@@ -425,84 +425,86 @@ elif tab == "Jeux internes":
                 st.error("Perdu 😢")
 
     # Pendu
-    elif game == "Pendu":
-        st.subheader("🪢 Pendu amélioré")
-        pendu_etapes = [
-            "+---+\n    |\n    |\n    |\n   ===",
-            "+---+\nO   |\n    |\n    |\n   ===",
-            "+---+\nO   |\n|   |\n    |\n   ===",
-            "+---+\nO   |\n/|  |\n    |\n   ===",
-            "+---+\nO   |\n/|\\ |\n    |\n   ===",
-            "+---+\nO   |\n/|\\ |\n/   |\n   ===",
-            "+---+\nO   |\n/|\\ |\n/ \\ |\n   ==="
-        ]
-        mot_affiche = " ".join([l if l in st.session_state.lettres_trouvees else "_" for l in st.session_state.mot_secret])
-        st.write(f"Mot à deviner : **{mot_affiche}**")
-        st.code(pendu_etapes[st.session_state.erreurs])
+   elif game == "Pendu":
+    st.subheader("🪢 Pendu amélioré")
 
-        # Indice Pendu usage
-        if st.session_state.consumables.get("indice_pendu",0) > 0 and not st.session_state.pendu_hint_used:
-            if st.button("💡 Utiliser Indice Pendu (révèle une lettre)", key="use_pendu_hint"):
-                remaining = [c for c in set(st.session_state.mot_secret) if c not in st.session_state.lettres_trouvees]
-                if remaining:
-                    chosen = random.choice(remaining)
-                    st.session_state.lettres_trouvees.append(chosen)
-                    st.session_state.pendu_hint_used = True
-                    consume_item("indice_pendu")
-                    st.success(f"💡 Indice utilisé : la lettre **{chosen}** a été révélée.")
-                    save_current_user()
-                else:
-                    st.info("Aucune lettre restante à révéler.")
+    # Dessins du pendu
+    pendu_etapes = [
+        "+---+\n    |\n    |\n    |\n   ===",
+        "+---+\nO   |\n    |\n    |\n   ===",
+        "+---+\nO   |\n|   |\n    |\n   ===",
+        "+---+\nO   |\n/|  |\n    |\n   ===",
+        "+---+\nO   |\n/|\\ |\n    |\n   ===",
+        "+---+\nO   |\n/|\\ |\n/   |\n   ===",
+        "+---+\nO   |\n/|\\ |\n/ \\ |\n   ==="
+    ]
 
-        lettre = st.text_input("Proposez une lettre :", max_chars=1, key="pendu_input")
-        if st.button("Proposer la lettre", key="pendu_propose"):
-            l = lettre.lower()
-            if not l or not l.isalpha():
-                st.warning("⚠️ Entrez une lettre valide.")
+    mot_affiche = " ".join([l if l in st.session_state.lettres_trouvees else "_" for l in st.session_state.mot_secret])
+    st.write(f"Mot à deviner : **{mot_affiche}**")
+    st.code(pendu_etapes[st.session_state.erreurs])
+
+    # Indice Pendu
+    if st.session_state.consumables.get("indice_pendu", 0) > 0 and not st.session_state.pendu_hint_used:
+        if st.button("💡 Utiliser Indice Pendu (révèle une lettre)", key="use_pendu_hint"):
+            remaining = [c for c in set(st.session_state.mot_secret) if c not in st.session_state.lettres_trouvees]
+            if remaining:
+                chosen = random.choice(remaining)
+                st.session_state.lettres_trouvees.append(chosen)
+                st.session_state.pendu_hint_used = True
+                consume_item("indice_pendu")
+                st.success(f"💡 Indice utilisé : la lettre **{chosen}** a été révélée.")
+                save_current_user()
             else:
-                if l in st.session_state.lettres_trouvees:
-                    st.warning("⚠️ Lettre déjà proposée.")
-                elif l in st.session_state.mot_secret:
-                    st.session_state.lettres_trouvees.append(l)
-                    st.success(f"✅ La lettre **{l}** est dans le mot !")
-                    save_current_user()
-                else:
-                    st.session_state.erreurs += 1
-                    st.error(f"❌ La lettre **{l}** n'est pas dans le mot.")
+                st.info("Aucune lettre restante à révéler.")
 
-        # Win
-        if "_" not in mot_affiche:
-            award_points(3, "Pendu gagné")
-            st.session_state.achievements.add("Maître du mot")
-            # reset round
-            st.session_state.mot_secret = random.choice(["python","famille","ordinateur","jeu","tom","arcade","chat","pizza","robot","streamlit"])
-            st.session_state.lettres_trouvees = []
-            st.session_state.erreurs = 0
-            st.session_state.pendu_hint_used = False
-            st.session_state.pendu_lost = False
-            save_current_user()
-            
-       # Lose
-if st.session_state.erreurs >= len(pendu_etapes) - 1:
-    st.error(f"💀 Pendu ! Le mot était **{st.session_state.mot_secret}**.")
-    st.session_state.pendu_lost = True
-    # Rejouer consumable
-    if st.session_state.consumables.get("rejouer", 0) > 0:
-        if st.button("🔄 Utiliser Rejouer pour recommencer (consomme 1)", key="pendu_replay"):
-            consume_item("rejouer")
-            st.session_state.mot_secret = random.choice(["python","famille","ordinateur","jeu","tom","arcade","chat","pizza","robot","streamlit"])
-            st.session_state.lettres_trouvees = []
-            st.session_state.erreurs = 0
-            st.session_state.pendu_hint_used = False
-            st.session_state.pendu_lost = False
-            st.success("La partie a été réinitialisée (Rejouer utilisé).")
-    else:
-        # Pas de consommable rejouer → reset normal
+    # Proposition lettre
+    lettre = st.text_input("Proposez une lettre :", max_chars=1, key="pendu_input")
+    if st.button("Proposer la lettre", key="pendu_propose"):
+        l = lettre.lower()
+        if not l or not l.isalpha():
+            st.warning("⚠️ Entrez une lettre valide.")
+        else:
+            if l in st.session_state.lettres_trouvees:
+                st.warning("⚠️ Lettre déjà proposée.")
+            elif l in st.session_state.mot_secret:
+                st.session_state.lettres_trouvees.append(l)
+                st.success(f"✅ La lettre **{l}** est dans le mot !")
+                save_current_user()
+            else:
+                st.session_state.erreurs += 1
+                st.error(f"❌ La lettre **{l}** n'est pas dans le mot.")
+
+    # Victoire
+    if "_" not in mot_affiche:
+        award_points(3, "Pendu gagné")
+        st.session_state.achievements.add("Maître du mot")
+        # reset
         st.session_state.mot_secret = random.choice(["python","famille","ordinateur","jeu","tom","arcade","chat","pizza","robot","streamlit"])
         st.session_state.lettres_trouvees = []
         st.session_state.erreurs = 0
         st.session_state.pendu_hint_used = False
         st.session_state.pendu_lost = False
-        st.info("Nouvelle partie commencée.")
+        save_current_user()
 
-
+    # Défaite
+    if st.session_state.erreurs >= len(pendu_etapes) - 1:
+        st.error(f"💀 Pendu ! Le mot était **{st.session_state.mot_secret}**.")
+        st.session_state.pendu_lost = True
+        # Consommable rejouer
+        if st.session_state.consumables.get("rejouer", 0) > 0:
+            if st.button("🔄 Utiliser Rejouer pour recommencer (consomme 1)", key="pendu_replay"):
+                consume_item("rejouer")
+                st.session_state.mot_secret = random.choice(["python","famille","ordinateur","jeu","tom","arcade","chat","pizza","robot","streamlit"])
+                st.session_state.lettres_trouvees = []
+                st.session_state.erreurs = 0
+                st.session_state.pendu_hint_used = False
+                st.session_state.pendu_lost = False
+                st.success("La partie a été réinitialisée (Rejouer utilisé).")
+        else:
+            # Reset classique
+            st.session_state.mot_secret = random.choice(["python","famille","ordinateur","jeu","tom","arcade","chat","pizza","robot","streamlit"])
+            st.session_state.lettres_trouvees = []
+            st.session_state.erreurs = 0
+            st.session_state.pendu_hint_used = False
+            st.session_state.pendu_lost = False
+            st.info("Nouvelle partie commencée.")
