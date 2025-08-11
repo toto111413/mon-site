@@ -1,4 +1,4 @@
-# app.py - Version finale avec onglets + sauvegarde Google Sheets + classement global
+# app.py - Version complète corrigée (onglets + boutique + animal + classement + Google Sheets)
 import streamlit as st
 import random
 import json
@@ -144,11 +144,9 @@ def sheet_get_all_players():
 # ---------------------------
 # INITIALISATIONS SESSION (jeu)
 # ---------------------------
-# points
 if "points" not in st.session_state:
     st.session_state.points = 0
 
-# consumables counts
 if "consumables" not in st.session_state:
     st.session_state.consumables = {
         "indice_pendu": 0,
@@ -157,35 +155,28 @@ if "consumables" not in st.session_state:
         "boost_animal": 0
     }
 
-# permanent hat
 if "has_hat" not in st.session_state:
     st.session_state.has_hat = False
 
-# inventory list (names)
 if "inventory_list" not in st.session_state:
     st.session_state.inventory_list = []
 
-# achievements set
 if "achievements" not in st.session_state:
     st.session_state.achievements = set()
 
-# pet
 if "pet" not in st.session_state:
     st.session_state.pet = "none"
 if "pet_xp" not in st.session_state:
     st.session_state.pet_xp = 0
 
-# legend success flag
 if "legend_awarded" not in st.session_state:
     st.session_state.legend_awarded = False
 
-# totals for achievements
 if "total_wins" not in st.session_state:
     st.session_state.total_wins = 0
 if "consecutive_wins" not in st.session_state:
     st.session_state.consecutive_wins = 0
 
-# per-game helpers
 if "secret" not in st.session_state:
     st.session_state.secret = random.randint(1, 20)
 
@@ -498,7 +489,14 @@ elif tab == "Jeux internes":
             # Rejouer consumable
             if st.session_state.consumables.get("rejouer",0) > 0:
                 if st.button("🔄 Utiliser Rejouer pour recommencer (consomme 1)", key="pendu_replay"):
-                    consume_item("
+                    consume_item("rejouer")
+                    st.session_state.mot_secret = random.choice(["python","famille","ordinateur","jeu","tom","arcade","chat","pizza","robot","streamlit"])
+                    st.session_state.lettres_trouvees = []
+                    st.session_state.erreurs = 0
+                    st.session_state.pendu_hint_used = False
+                    st.session_state.pendu_lost = False
+                    st.success("La partie a été réinitialisée (Rejouer utilisé).
+
 
 
 
