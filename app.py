@@ -531,3 +531,84 @@ elif tab == "Jeux internes":
             st.session_state.pendu_hint_used = False
             st.session_state.pendu_lost = False
             st.info("Nouvelle partie commencée.")
+    # ---------------------------
+# PAGE: BOUTIQUE
+# ---------------------------
+elif tab == "Boutique":
+    st.header("🛒 Boutique")
+    st.write("Utilise tes points pour acheter des objets et améliorer tes chances dans les jeux !")
+
+    boutique = {
+        "🎩 Chapeau magique (+1 point par victoire)": {"prix": 20, "type": "hat"},
+        "💡 Indice Pendu": {"prix": 5, "type": "consumable", "key": "indice_pendu"},
+        "🎯 Aide Mastermind": {"prix": 5, "type": "consumable", "key": "aide_mastermind"},
+        "🔄 Rejouer": {"prix": 3, "type": "consumable", "key": "rejouer"},
+        "🚀 Boost Animal": {"prix": 4, "type": "consumable", "key": "boost_animal"},
+        "🥚 Œuf de compagnon": {"prix": 15, "type": "pet", "pet_stage": "egg"}
+    }
+
+    for nom, info in boutique.items():
+        st.write(f"**{nom}** — {info['prix']} points")
+        if st.button(f"Acheter {nom}", key=f"buy_{nom}"):
+            if st.session_state.points >= info["prix"]:
+                st.session_state.points -= info["prix"]
+                if info["type"] == "hat":
+                    st.session_state.has_hat = True
+                elif info["type"] == "consumable":
+                    add_consumable(info["key"])
+                elif info["type"] == "pet":
+                    if st.session_state.pet == "none":
+                        st.session_state.pet = info["pet_stage"]
+                        st.session_state.pet_xp = 0
+                        st.success("🐣 Un œuf de compagnon a été ajouté à ton inventaire !")
+                save_current_user()
+                st.success(f"✅ {nom} acheté !")
+            else:
+                st.error("Pas assez de points.")
+
+# ---------------------------
+# PAGE: ANIMAL
+# ---------------------------
+elif tab == "Animal":
+    st.header("🐾 Ton compagnon virtuel")
+    if st.session_state.pet == "none":
+        st.info("Tu n'as pas encore d'animal. Achète un œuf dans la boutique.")
+    else:
+        st.write(f"**Type** : {st.session_state.pet}")
+        st.write(f"**XP** : {st.session_state.pet_xp}")
+        if st.button("🚀 Utiliser Boost Animal (+5 XP)"):
+            if consume_item("boost_animal"):
+                st.session_state.pet_xp += 5
+                evolve_pet_if_needed()
+                save_current_user()
+            else:
+                st.error("Aucun boost animal dans l'inventaire.")
+        check_legend_success()
+
+# ---------------------------
+# PAGE: SUCCÈS
+# ---------------------------
+elif tab == "Succès":
+    st.header("🏆 Succès débloqués")
+    if not st.session_state.achievements:
+        st.info("Aucun succès pour le moment.")
+    else:
+        for ach in st.session_state.achievements:
+            st.write(f"✅ {ach}")
+
+# ---------------------------
+# PAGE: CLASSEMENT
+# ---------------------------
+elif tab == "Classement":
+    st.header("📊 Classement global des joueurs")
+    if use_sheets:
+        players = sheet_get_all_players()
+        if not players:
+            st.info("Aucun joueur enregistré pour le moment.")
+        else:
+            df = sorted(players, key=lambda x: x["Points"], reverse=True)
+            st.table(df)
+    else:
+        st.warning("Classement indisponible — Google Sheets non configuré.")
+
+        
