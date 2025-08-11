@@ -141,12 +141,14 @@ def sheet_get_all_players():
     if not use_sheets:
         return []
     try:
-        records = sheet.get_all_records()  # list of dicts keyed by header
+        records = sheet.get_all_records()
         players = []
         for rec in records:
             name = rec.get("Nom", "")
             points = int(rec.get("Points") or 0)
             players.append({"Nom": name, "Points": points})
+        # Tri par points décroissants
+        players.sort(key=lambda x: x["Points"], reverse=True)
         return players
     except Exception as e:
         st.error("Erreur lors de la lecture du classement : " + str(e))
