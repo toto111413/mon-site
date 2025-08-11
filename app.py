@@ -424,20 +424,32 @@ elif tab == "Jeux internes":
             else:
                 st.error("Perdu 😢")
 
-    # Pendu
-   elif game == "Pendu":
-       st.subheader("🪢 Pendu amélioré")
+    # --- Étapes du pendu (globales) ---
+pendu_etapes = [
+    "+---+\n    |\n    |\n    |\n   ===",
+    "+---+\nO   |\n    |\n    |\n   ===",
+    "+---+\nO   |\n|   |\n    |\n   ===",
+    "+---+\nO   |\n/|  |\n    |\n   ===",
+    "+---+\nO   |\n/|\\ |\n    |\n   ===",
+    "+---+\nO   |\n/|\\ |\n/   |\n   ===",
+    "+---+\nO   |\n/|\\ |\n/ \\ |\n   ==="
+]
 
-    # Dessins du pendu
-    pendu_etapes = [
-        "+---+\n    |\n    |\n    |\n   ===",
-        "+---+\nO   |\n    |\n    |\n   ===",
-        "+---+\nO   |\n|   |\n    |\n   ===",
-        "+---+\nO   |\n/|  |\n    |\n   ===",
-        "+---+\nO   |\n/|\\ |\n    |\n   ===",
-        "+---+\nO   |\n/|\\ |\n/   |\n   ===",
-        "+---+\nO   |\n/|\\ |\n/ \\ |\n   ==="
-    ]
+# --- Jeu du Pendu ---
+elif game == "Pendu":
+    st.subheader("🪢 Pendu amélioré")
+
+    # Initialisation si nécessaire
+    if "mot_secret" not in st.session_state:
+        st.session_state.mot_secret = random.choice(["python", "famille", "ordinateur", "jeu", "tom", "arcade", "chat", "pizza", "robot", "streamlit"])
+    if "lettres_trouvees" not in st.session_state:
+        st.session_state.lettres_trouvees = []
+    if "erreurs" not in st.session_state:
+        st.session_state.erreurs = 0
+    if "pendu_hint_used" not in st.session_state:
+        st.session_state.pendu_hint_used = False
+    if "pendu_lost" not in st.session_state:
+        st.session_state.pendu_lost = False
 
     mot_affiche = " ".join([l if l in st.session_state.lettres_trouvees else "_" for l in st.session_state.mot_secret])
     st.write(f"Mot à deviner : **{mot_affiche}**")
@@ -478,7 +490,6 @@ elif tab == "Jeux internes":
     if "_" not in mot_affiche:
         award_points(3, "Pendu gagné")
         st.session_state.achievements.add("Maître du mot")
-        # reset
         st.session_state.mot_secret = random.choice(["python","famille","ordinateur","jeu","tom","arcade","chat","pizza","robot","streamlit"])
         st.session_state.lettres_trouvees = []
         st.session_state.erreurs = 0
