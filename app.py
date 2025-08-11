@@ -452,7 +452,7 @@ elif menu == "Mots mélangés":
                         st.success("Rejouer utilisé : nouvelle partie lancée.")
                 else:
                     if st.button("Recommencer manuellement"):
-                        mots = ["python","streamlit","ordinateur","arcade","programmation","robot"]
+                        mots = ["papick","site","choix","malade","programmation","grotte"]
                         st.session_state.mot_original = random.choice(mots)
                         melange = list(st.session_state.mot_original)
                         random.shuffle(melange)
