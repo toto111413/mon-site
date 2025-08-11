@@ -1,8 +1,8 @@
-# app.py - version finale avec onglets + Google Sheets save/load
+# app.py - Version finale avec onglets + sauvegarde Google Sheets + classement global
 import streamlit as st
 import random
 import json
-from typing import Dict
+from typing import Dict, List
 
 # --- SAUVEGARDE / GOOGLE SHEETS SETUP ---
 use_sheets = False
@@ -52,8 +52,6 @@ def sheet_load_user(name: str) -> Dict:
     try:
         row_index = sheet_find_row_by_name(name)
         if row_index:
-            row = sheet.row_values(row_index)
-            # On suppose en-tête: Nom,Points,Consumables,HasHat,InventoryList,Achievements,Pet,PetXP
             header = sheet.row_values(1)
             data = {}
             for col_idx, col_name in enumerate(header, start=1):
@@ -87,7 +85,6 @@ def sheet_create_user(name: str, state: dict):
         header = sheet.row_values(1)
         # Ensure header exists
         if not header or "Nom" not in header:
-            # Create header
             sheet.update('A1', [["Nom","Points","Consumables","HasHat","InventoryList","Achievements","Pet","PetXP"]])
         row = [
             name,
@@ -127,6 +124,22 @@ def sheet_update_user(name: str, state: dict):
                 sheet.update_cell(row_index, col_idx, updates[col_name])
     except Exception as e:
         st.error("Erreur lors de la mise à jour utilisateur dans Sheets : " + str(e))
+
+def sheet_get_all_players():
+    """Retourne la liste des joueurs sous forme de dicts (Nom, Points)."""
+    if not use_sheets:
+        return []
+    try:
+        records = sheet.get_all_records()  # list of dicts keyed by header
+        players = []
+        for rec in records:
+            name = rec.get("Nom", "")
+            points = int(rec.get("Points") or 0)
+            players.append({"Nom": name, "Points": points})
+        return players
+    except Exception as e:
+        st.error("Erreur lors de la lecture du classement : " + str(e))
+        return []
 
 # ---------------------------
 # INITIALISATIONS SESSION (jeu)
@@ -260,7 +273,6 @@ def check_legend_success():
         st.session_state.legend_awarded = True
         st.balloons()
         st.success("🏆 Succès débloqué : Légende vivante ! +20 points")
-        # save after reward
         save_current_user()
 
 def award_points(points_gain=0, reason=None):
@@ -278,15 +290,11 @@ def award_points(points_gain=0, reason=None):
         st.session_state.achievements.add("Vainqueur x5")
     if st.session_state.consecutive_wins >= 3:
         st.session_state.achievements.add("Série de 3 victoires")
-    # pet gains pet_xp equal to points_gain
     if st.session_state.pet != "none":
         st.session_state.pet_xp += points_gain
-        # check pet evolution and legend success
         evolve_pet_if_needed()
-    # unlock secret by points
     if st.session_state.points >= 100:
         st.session_state.secret_unlocked = True
-    # autosave
     save_current_user()
 
 def evolve_pet_if_needed():
@@ -302,9 +310,7 @@ def evolve_pet_if_needed():
         st.session_state.pet = "legend"
         st.session_state.achievements.add("Compagnon légendaire")
         st.success("👑 Ton compagnon est devenu légendaire !")
-    # check legend success after evolutions
     check_legend_success()
-    # autosave
     save_current_user()
 
 # ---------------------------
@@ -367,16 +373,15 @@ def load_or_create_user_by_name(name: str):
 st.sidebar.header("Joueur")
 player_name = st.sidebar.text_input("Ton pseudo (obligatoire pour sauvegarder)", key="player_name_input")
 if player_name:
-    # store in session and load from sheet if needed
     if "player_name" not in st.session_state or st.session_state.player_name != player_name:
         st.session_state.player_name = player_name
-        # load/create from Sheets
+        # load/create from Sheets if possible
         load_or_create_user_by_name(player_name)
         st.success(f"Bienvenue {player_name} — progression chargée (si existait).")
 else:
     st.sidebar.info("Entrez un pseudo pour activer la sauvegarde.")
 
-tab = st.sidebar.selectbox("Navigation", ["Accueil", "Jeux internes", "Jeux externes", "Boutique", "Animal", "Succès"])
+tab = st.sidebar.selectbox("Navigation", ["Accueil", "Jeux internes", "Jeux externes", "Boutique", "Animal", "Succès", "Classement"])
 
 # Top quick status
 st.markdown(f"**💰 Points : {st.session_state.points} • Inventaire : {', '.join(inventory_display_list()) or 'Aucun'}**")
@@ -392,7 +397,7 @@ if tab == "Accueil":
     st.write("Amuse-toi !")
 
 # ---------------------------
-# PAGE: JEUX INTERNES (onglet avec sous-jeux)
+# PAGE: JEUX INTERNES
 # ---------------------------
 elif tab == "Jeux internes":
     st.header("🎮 Jeux internes")
@@ -493,291 +498,7 @@ elif tab == "Jeux internes":
             # Rejouer consumable
             if st.session_state.consumables.get("rejouer",0) > 0:
                 if st.button("🔄 Utiliser Rejouer pour recommencer (consomme 1)", key="pendu_replay"):
-                    consume_item("rejouer")
-                    st.session_state.mot_secret = random.choice(["python","famille","ordinateur","jeu","tom","arcade","chat","pizza","robot","streamlit"])
-                    st.session_state.lettres_trouvees = []
-                    st.session_state.erreurs = 0
-                    st.session_state.pendu_hint_used = False
-                    st.session_state.pendu_lost = False
-                    st.success("La partie a été réinitialisée (Rejouer utilisé).")
-                    save_current_user()
-            else:
-                if st.button("Recommencer manuellement", key="pendu_manual_restart"):
-                    st.session_state.mot_secret = random.choice(["python","famille","ordinateur","jeu","tom","arcade","chat","pizza","robot","streamlit"])
-                    st.session_state.lettres_trouvees = []
-                    st.session_state.erreurs = 0
-                    st.session_state.pendu_hint_used = False
-                    st.session_state.pendu_lost = False
-                    save_current_user()
+                    consume_item("
 
-    # Mastermind
-    elif game == "Mastermind":
-        st.subheader("🎯 Mastermind")
-        couleurs = ["Rouge","Bleu","Vert","Jaune","Orange","Violet"]
-        choix = [st.selectbox(f"Couleur {i+1}", couleurs, key=f"mm_color_{i}") for i in range(4)]
-        if st.button("Vérifier combinaison", key="mm_verify"):
-            bien_places = sum([c == s for c, s in zip(choix, st.session_state.mastermind_secret)])
-            mal_places = sum(min(choix.count(c), st.session_state.mastermind_secret.count(c)) for c in couleurs) - bien_places
-            st.write(f"Bien placés : {bien_places} | Mal placés : {mal_places}")
-            if bien_places == 4:
-                award_points(8, "Mastermind gagné")
-                st.session_state.achievements.add("Maître du code")
-                st.session_state.mastermind_secret = [random.choice(couleurs) for _ in range(4)]
-                st.session_state.mastermind_attempts = 6
-                st.session_state.mastermind_hint_used = False
-                st.session_state.mastermind_lost = False
-                save_current_user()
-            else:
-                st.session_state.mastermind_attempts -= 1
-                if st.session_state.mastermind_attempts <= 0:
-                    st.error(f"Perdu ! La combinaison était : {st.session_state.mastermind_secret}")
-                    st.session_state.mastermind_lost = True
-                    # Rejouer consumable
-                    if st.session_state.consumables.get("rejouer",0) > 0:
-                        if st.button("🔄 Utiliser Rejouer pour recommencer Mastermind (consomme 1)", key="mm_replay"):
-                            consume_item("rejouer")
-                            st.session_state.mastermind_secret = [random.choice(couleurs) for _ in range(4)]
-                            st.session_state.mastermind_attempts = 6
-                            st.session_state.mastermind_hint_used = False
-                            st.session_state.mastermind_lost = False
-                            st.success("Rejouer utilisé : nouvelle combinaison générée.")
-                            save_current_user()
-                    else:
-                        if st.button("Recommencer Mastermind", key="mm_manual_restart"):
-                            st.session_state.mastermind_secret = [random.choice(couleurs) for _ in range(4)]
-                            st.session_state.mastermind_attempts = 6
-                            st.session_state.mastermind_hint_used = False
-                            st.session_state.mastermind_lost = False
-                            save_current_user()
-
-        # Aide Mastermind consumable
-        if st.session_state.consumables.get("aide_mastermind",0) > 0 and not st.session_state.mastermind_hint_used:
-            if st.button("🎯 Utiliser Aide Mastermind (révèle une position correcte)", key="mm_hint"):
-                idx = random.randrange(4)
-                couleur_reelle = st.session_state.mastermind_secret[idx]
-                st.session_state.mastermind_hint_used = True
-                consume_item("aide_mastermind")
-                st.info(f"🎯 Indice : à la position {idx+1}, la couleur est **{couleur_reelle}**")
-                save_current_user()
-
-    # Mots mélangés
-    elif game == "Mots mélangés":
-        st.subheader("🔀 Mots mélangés")
-        st.write(f"Mot mélangé : **{st.session_state.mot_melange}**")
-        proposition = st.text_input("Votre réponse :", key="mmix_input")
-        if st.button("Valider mot", key="mmix_validate"):
-            if proposition.lower() == st.session_state.mot_original:
-                award_points(5, "Mots mélangés gagné")
-                st.session_state.achievements.add("Décodeur")
-                mots = ["python","streamlit","ordinateur","arcade","programmation","robot"]
-                st.session_state.mot_original = random.choice(mots)
-                melange = list(st.session_state.mot_original)
-                random.shuffle(melange)
-                st.session_state.mot_melange = "".join(melange)
-                st.session_state.mots_attempts = 3
-                st.session_state.mots_lost = False
-                save_current_user()
-            else:
-                st.session_state.mots_attempts -= 1
-                st.warning(f"Incorrect ! Essais restants : {st.session_state.mots_attempts}")
-                if st.session_state.mots_attempts <= 0:
-                    st.error(f"Perdu ! Le mot était : {st.session_state.mot_original}")
-                    st.session_state.mots_lost = True
-                    if st.session_state.consumables.get("rejouer",0) > 0:
-                        if st.button("🔄 Utiliser Rejouer (consomme 1)", key="mmix_replay"):
-                            consume_item("rejouer")
-                            mots = ["python","streamlit","ordinateur","arcade","programmation","robot"]
-                            st.session_state.mot_original = random.choice(mots)
-                            melange = list(st.session_state.mot_original)
-                            random.shuffle(melange)
-                            st.session_state.mot_melange = "".join(melange)
-                            st.session_state.mots_attempts = 3
-                            st.session_state.mots_lost = False
-                            st.success("Rejouer utilisé : nouvelle partie lancée.")
-                            save_current_user()
-                    else:
-                        if st.button("Recommencer manuellement", key="mmix_restart"):
-                            mots = ["python","streamlit","ordinateur","arcade","programmation","robot"]
-                            st.session_state.mot_original = random.choice(mots)
-                            melange = list(st.session_state.mot_original)
-                            random.shuffle(melange)
-                            st.session_state.mot_melange = "".join(melange)
-                            st.session_state.mots_attempts = 3
-                            st.session_state.mots_lost = False
-                            save_current_user()
-
-    # Mini-jeu secret
-    elif game == "Mini-jeu secret":
-        if not st.session_state.secret_unlocked:
-            st.info("Mini-jeu secret débloqué à 100 points.")
-        else:
-            st.subheader("🔒 Mini-jeu secret : Trouve le trésor")
-            st.write("Tu as 6 essais pour trouver le trésor caché dans une grille 4x4.")
-            st.write(f"Essais restants : {st.session_state.treasure_attempts}")
-            x = st.slider("Choisis X", 0, 3, 0, key="tre_x_internal")
-            y = st.slider("Choisis Y", 0, 3, 0, key="tre_y_internal")
-            if st.button("Creuser", key="dig_internal"):
-                if (x,y) == st.session_state.treasure_pos:
-                    award_points(20, "Trésor trouvé")
-                    st.success("💎 Tu as trouvé le trésor !")
-                    # reset
-                    st.session_state.treasure_pos = (random.randint(0,3), random.randint(0,3))
-                    st.session_state.treasure_attempts = 6
-                    st.session_state.treasure_found = False
-                    save_current_user()
-                else:
-                    st.session_state.treasure_attempts -= 1
-                    st.warning("Rien ici...")
-                    if st.session_state.treasure_attempts <= 0:
-                        st.error(f"Fin des essais ! Le trésor était en {st.session_state.treasure_pos}")
-                        if st.button("Recommencer la chasse", key="dig_restart_internal"):
-                            st.session_state.treasure_pos = (random.randint(0,3), random.randint(0,3))
-                            st.session_state.treasure_attempts = 6
-                            st.session_state.treasure_found = False
-                            save_current_user()
-
-# ---------------------------
-# PAGE: JEUX EXTERNES
-# ---------------------------
-elif tab == "Jeux externes":
-    st.header("🌐 Jeux externes")
-    jeux = [
-        {"titre": "cible", "desc": "As-tu le meilleur score ?", "lien": "https://zmwguswsyytnolqexffdfj.streamlit.app/"},
-        {"titre": "RPG", "desc": "Combattez les monstres !", "lien": "https://je7erdurjykggnaagdzyzt.streamlit.app/"},
-        {"titre": "Quiz", "desc": "Répondez aux questions", "lien": "https://hyu2irxjzdthppfbix6duf.streamlit.app/"},
-        {"titre": "Dé", "desc": "Faites un grand total", "lien": "https://essaie-2-hcaltzcmtgndkwfuei7snk.streamlit.app/"},
-        {"titre": "Morpion", "desc": "Jouez contre une IA", "lien": "https://essaie-p44xbuapphmrcwqw65nys44.streamlit.app/"}
-    ]
-    for j in jeux:
-        st.subheader(j["titre"])
-        st.write(j["desc"])
-        st.markdown(f"[Voir le jeu]({j['lien']})")
-
-# ---------------------------
-# PAGE: BOUTIQUE
-# ---------------------------
-elif tab == "Boutique":
-    st.header("🛒 Boutique")
-    st.write(f"Points disponibles : **{st.session_state.points}**")
-    st.subheader("Articles disponibles")
-    # ARTICLES list (Œuf en premier)
-    SHOP = [
-        {"key":"pet_egg","nom":"🥚 Œuf de compagnon","prix":15,"desc":"Achetez un œuf qui éclos et devient un compagnon évolutif.","consumable":False,"special":"unlock_pet"},
-        {"key":"chapeau","nom":"🎩 Chapeau magique","prix":10,"desc":"Permanent : +1 point bonus par victoire.","consumable":False},
-        {"key":"indice_pendu","nom":"💡 Indice Pendu","prix":8,"desc":"Consommable: révèle une lettre dans le Pendu (1x).","consumable":True},
-        {"key":"aide_mastermind","nom":"🎯 Aide Mastermind","prix":8,"desc":"Consommable: révèle la couleur correcte d'une position (1x).","consumable":True},
-        {"key":"rejouer","nom":"🔄 Rejouer","prix":12,"desc":"Consommable: recommencer une partie perdue sans pénalité (1x).","consumable":True},
-        {"key":"boost_animal","nom":"🚀 Boost Animal","prix":10,"desc":"Consommable: +10 pet XP (1x).","consumable":True}
-    ]
-    for art in SHOP:
-        c1, c2 = st.columns([3,1])
-        with c1:
-            st.write(f"**{art['nom']}** - {art['prix']} pts")
-            st.caption(art["desc"])
-        with c2:
-            if art["key"] == "pet_egg":
-                if st.session_state.pet != "none":
-                    st.button("Acheté", key="bought_pet")
-                else:
-                    if st.button("Acheter", key="buy_pet"):
-                        if st.session_state.points >= art["prix"]:
-                            st.session_state.points -= art["prix"]
-                            st.session_state.pet = "egg"
-                            if art["nom"] not in st.session_state.inventory_list:
-                                st.session_state.inventory_list.append(art["nom"])
-                            st.success("🥚 Tu as adopté un œuf ! Va voir la page Animal pour t'en occuper.")
-                            save_current_user()
-                        else:
-                            st.error("Pas assez de points.")
-            elif art["key"] == "chapeau":
-                if st.session_state.has_hat:
-                    st.button("Acheté", key="bought_hat")
-                else:
-                    if st.button("Acheter", key="buy_hat"):
-                        if st.session_state.points >= art["prix"]:
-                            st.session_state.points -= art["prix"]
-                            st.session_state.has_hat = True
-                            if art["nom"] not in st.session_state.inventory_list:
-                                st.session_state.inventory_list.append(art["nom"])
-                            st.success("🎩 Chapeau acheté ! (+1 point bonus par victoire)")
-                            save_current_user()
-                        else:
-                            st.error("Pas assez de points.")
-            else:
-                # consumables
-                cnt = st.session_state.consumables.get(art["key"],0)
-                st.write(f"x{cnt}")
-                if st.button("Acheter", key=f"buy_{art['key']}"):
-                    if st.session_state.points >= art["prix"]:
-                        st.session_state.points -= art["prix"]
-                        add_consumable(art["key"],1)
-                        if art["nom"] not in st.session_state.inventory_list:
-                            st.session_state.inventory_list.append(art["nom"])
-                        st.success(f"{art['nom']} ajouté à ton inventaire.")
-                        save_current_user()
-                    else:
-                        st.error("Pas assez de points.")
-
-    st.markdown("---")
-    st.subheader("Inventaire détaillé")
-    inv = inventory_display_list()
-    if inv:
-        for i in inv:
-            st.write("•", i)
-    else:
-        st.write("Aucun objet possédé.")
-
-# ---------------------------
-# PAGE: ANIMAL
-# ---------------------------
-elif tab == "Animal":
-    st.header("🐶 Animal virtuel")
-    visuals = {
-        "none": "Tu n'as pas d'animal. Achète l'œuf dans la boutique.",
-        "egg": "🥚 (œuf)",
-        "puppy": "🐶 (chiot)",
-        "adult": "🐕 (adulte)",
-        "legend": "🐕‍🦺✨ (légendaire)"
-    }
-    st.write(f"Statut : **{visuals.get(st.session_state.pet, 'none')}**")
-    st.write(f"XP du compagnon : {st.session_state.pet_xp}")
-    if st.session_state.pet != "none":
-        if st.button("Caresser (+1 pet XP)", key="pet_caresse"):
-            st.session_state.pet_xp += 1
-            evolve_pet_if_needed()
-            save_current_user()
-            st.success("❤️ Le compagnon est content.")
-    # boost animal consumable
-    if st.session_state.consumables.get("boost_animal",0) > 0:
-        if st.button("🚀 Utiliser Boost Animal (+10 pet XP)", key="use_boost_animal"):
-            consume_item("boost_animal")
-            st.session_state.pet_xp += 10
-            evolve_pet_if_needed()
-            save_current_user()
-            st.success("Boost Animal utilisé (+10 pet XP).")
-    st.markdown("---")
-    st.write("Les animaux gagnent de l'expérience lorsque vous gagnez des parties (les points donnés aux joueurs donnent aussi de l'XP au compagnon).")
-
-# ---------------------------
-# PAGE: SUCCÈS
-# ---------------------------
-elif tab == "Succès":
-    st.header("🏆 Succès débloqués")
-    if st.session_state.achievements:
-        for a in sorted(st.session_state.achievements):
-            st.write("•", a)
-    else:
-        st.write("Aucun succès débloqué pour le moment. Joue pour en obtenir !")
-
-# ---------------------------
-# FOOTER (autosave)
-# ---------------------------
-# Save on exit actions: an easy way is to provide a manual save button as well
-st.markdown("---")
-if st.button("Sauvegarder maintenant"):
-    save_current_user()
-    st.success("Progression sauvegardée (si Google Sheets configuré).")
-
-st.caption("Version finale : onglets, boutique améliorée, animal virtuel, succès, et sauvegarde Google Sheets (optionnelle).")
 
 
