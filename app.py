@@ -9,7 +9,13 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 # --- Header ---
-st.markdown('<div class="title">Bienvenue sur mon site de jeux en ligne ✨</div>', unsafe_allow_html=True)
+# --- En-tête commun ---
+st.markdown("<h1 style='text-align:center'>Bienvenue sur mon site de jeux ✨</h1>", unsafe_allow_html=True)
+name = st.text_input("Quel est votre nom ?", key="username")
+if name:
+    st.success(f"Enchanté, {name} ! 😊")
+st.markdown("---")
+
 st.write("""
 
 Bonjour ! Je suis un jeune développeur passionné par Python et les jeux vidéos.
@@ -120,15 +126,6 @@ if st.session_state.secret_unlocked:
 
 menu = st.radio("🎮 Choisis une section :", menu_items)
 st.markdown(f"**💰 Points : {st.session_state.points}**")
-
-# ---------------------------
-# ACCUEIL
-# ---------------------------
-if menu == "Accueil":
-    name = st.text_input("Quel est votre nom ?")
-    if name:
-        st.success(f"Enchanté, {name} ! 😊")
-    st.write("Amuse-toi, gagne des points, débloque le mini-jeu secret et fais évoluer ton animal !")
 
 # ---------------------------
 # JEUX EXTERNES
