@@ -435,13 +435,14 @@ pendu_etapes = [
     "+---+\nO   |\n/|\\ |\n/ \\ |\n   ==="
 ]
 
-# --- Jeu du Pendu ---
 elif game == "Pendu":
     st.subheader("🪢 Pendu amélioré")
 
-    # Initialisation si nécessaire
+    # Initialisation des variables de session
     if "mot_secret" not in st.session_state:
-        st.session_state.mot_secret = random.choice(["python", "famille", "ordinateur", "jeu", "tom", "arcade", "chat", "pizza", "robot", "streamlit"])
+        st.session_state.mot_secret = random.choice(
+            ["python", "famille", "ordinateur", "jeu", "tom", "arcade", "chat", "pizza", "robot", "streamlit"]
+        )
     if "lettres_trouvees" not in st.session_state:
         st.session_state.lettres_trouvees = []
     if "erreurs" not in st.session_state:
@@ -451,11 +452,12 @@ elif game == "Pendu":
     if "pendu_lost" not in st.session_state:
         st.session_state.pendu_lost = False
 
+    # Affichage du mot
     mot_affiche = " ".join([l if l in st.session_state.lettres_trouvees else "_" for l in st.session_state.mot_secret])
     st.write(f"Mot à deviner : **{mot_affiche}**")
     st.code(pendu_etapes[st.session_state.erreurs])
 
-    # Indice Pendu
+    # Indice si disponible
     if st.session_state.consumables.get("indice_pendu", 0) > 0 and not st.session_state.pendu_hint_used:
         if st.button("💡 Utiliser Indice Pendu (révèle une lettre)", key="use_pendu_hint"):
             remaining = [c for c in set(st.session_state.mot_secret) if c not in st.session_state.lettres_trouvees]
@@ -469,7 +471,7 @@ elif game == "Pendu":
             else:
                 st.info("Aucune lettre restante à révéler.")
 
-    # Proposition lettre
+    # Proposition de lettre
     lettre = st.text_input("Proposez une lettre :", max_chars=1, key="pendu_input")
     if st.button("Proposer la lettre", key="pendu_propose"):
         l = lettre.lower()
@@ -490,7 +492,9 @@ elif game == "Pendu":
     if "_" not in mot_affiche:
         award_points(3, "Pendu gagné")
         st.session_state.achievements.add("Maître du mot")
-        st.session_state.mot_secret = random.choice(["python","famille","ordinateur","jeu","tom","arcade","chat","pizza","robot","streamlit"])
+        st.session_state.mot_secret = random.choice(
+            ["python", "famille", "ordinateur", "jeu", "tom", "arcade", "chat", "pizza", "robot", "streamlit"]
+        )
         st.session_state.lettres_trouvees = []
         st.session_state.erreurs = 0
         st.session_state.pendu_hint_used = False
@@ -501,11 +505,14 @@ elif game == "Pendu":
     if st.session_state.erreurs >= len(pendu_etapes) - 1:
         st.error(f"💀 Pendu ! Le mot était **{st.session_state.mot_secret}**.")
         st.session_state.pendu_lost = True
-        # Consommable rejouer
+
+        # Option Rejouer si disponible
         if st.session_state.consumables.get("rejouer", 0) > 0:
             if st.button("🔄 Utiliser Rejouer pour recommencer (consomme 1)", key="pendu_replay"):
                 consume_item("rejouer")
-                st.session_state.mot_secret = random.choice(["python","famille","ordinateur","jeu","tom","arcade","chat","pizza","robot","streamlit"])
+                st.session_state.mot_secret = random.choice(
+                    ["python", "famille", "ordinateur", "jeu", "tom", "arcade", "chat", "pizza", "robot", "streamlit"]
+                )
                 st.session_state.lettres_trouvees = []
                 st.session_state.erreurs = 0
                 st.session_state.pendu_hint_used = False
@@ -513,7 +520,9 @@ elif game == "Pendu":
                 st.success("La partie a été réinitialisée (Rejouer utilisé).")
         else:
             # Reset classique
-            st.session_state.mot_secret = random.choice(["python","famille","ordinateur","jeu","tom","arcade","chat","pizza","robot","streamlit"])
+            st.session_state.mot_secret = random.choice(
+                ["python", "famille", "ordinateur", "jeu", "tom", "arcade", "chat", "pizza", "robot", "streamlit"]
+            )
             st.session_state.lettres_trouvees = []
             st.session_state.erreurs = 0
             st.session_state.pendu_hint_used = False
