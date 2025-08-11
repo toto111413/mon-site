@@ -360,7 +360,7 @@ elif menu == "Pendu":
                 st.success("La partie a été réinitialisée (Rejouer utilisé).")
         else:
             if st.button("Recommencer manuellement"):
-                st.session_state.mot_secret = random.choice(["python","famille","ordinateur","jeu","tom","arcade","chat","pizza","robot","streamlit"])
+                st.session_state.mot_secret = random.choice(["python","famille","ordinateur","jeu","tom","arcade","chat","pizza"])
                 st.session_state.lettres_trouvees = []
                 st.session_state.erreurs = 0
                 st.session_state.pendu_hint_used = False
