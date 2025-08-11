@@ -483,7 +483,7 @@ elif tab == "Jeux internes":
             save_current_user()
             
        # Lose
-if st.session_state.erreurs >= len(pendu_etapes)-1:
+if st.session_state.erreurs >= len(pendu_etapes) - 1:
     st.error(f"💀 Pendu ! Le mot était **{st.session_state.mot_secret}**.")
     st.session_state.pendu_lost = True
     # Rejouer consumable
