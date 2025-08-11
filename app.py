@@ -130,7 +130,7 @@ st.markdown(f"**💰 Points : {st.session_state.points}**")
 # ---------------------------
 # JEUX EXTERNES
 # ---------------------------
-elif menu == "Jeux externes":
+if menu == "Jeux externes":
     st.header("🎮 Mes jeux externes")
     jeux = [
         {"titre": "cible", "desc": "As-tu le meilleur score ?", "lien": "https://zmwguswsyytnolqexffdfj.streamlit.app/"},
