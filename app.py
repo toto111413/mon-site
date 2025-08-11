@@ -10,6 +10,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
 # ---------------------------
 # INITIALISATIONS SESSION
 # ---------------------------
@@ -29,11 +30,11 @@ if "consumables" not in st.session_state:
 if "has_hat" not in st.session_state:
     st.session_state.has_hat = False
 
-# inventaire friendly list for display (keeps names of items owned including chapeau)
+# inventory_list used for display names (keeps unique names for purchased permanent items)
 if "inventory_list" not in st.session_state:
     st.session_state.inventory_list = []
 
-# achievements
+# achievements (successes)
 if "achievements" not in st.session_state:
     st.session_state.achievements = set()
 
@@ -42,6 +43,10 @@ if "pet" not in st.session_state:
     st.session_state.pet = "none"  # none, egg, puppy, adult, legend
 if "pet_xp" not in st.session_state:
     st.session_state.pet_xp = 0
+
+# track whether "Légende vivante" was already awarded
+if "legend_awarded" not in st.session_state:
+    st.session_state.legend_awarded = False  # --- AJOUT: succès unique flag
 
 # secret mini-game unlocked by points
 if "secret_unlocked" not in st.session_state:
@@ -129,6 +134,8 @@ def award_points(points_gain=0, reason=None):
     # unlock secret by points threshold
     if st.session_state.points >= 100:
         st.session_state.secret_unlocked = True
+    # --- AJOUT: vérifier succès unique "Légende vivante" (1000 pet XP)
+    check_legend_success()
 
 def evolve_pet_if_needed():
     if st.session_state.pet == "egg" and st.session_state.pet_xp >= 10:
@@ -143,13 +150,23 @@ def evolve_pet_if_needed():
         st.session_state.pet = "legend"
         st.session_state.achievements.add("Compagnon légendaire")
         st.success("👑 Ton compagnon est devenu légendaire !")
+    # --- AJOUT: vérifier succès unique "Légende vivante" aussi quand évolutions se produisent
+    check_legend_success()
+
+def check_legend_success():
+    """Vérifie si pet_xp atteint 1000 et donne le succès une seule fois."""
+    if (st.session_state.pet_xp >= 1000) and (not st.session_state.legend_awarded):
+        # --- AJOUT: déverrouille succès unique et récompense +20 points
+        st.session_state.achievements.add("🏆 Légende vivante")
+        st.session_state.points += 20
+        st.session_state.legend_awarded = True
+        st.balloons()
+        st.success("🏆 Succès débloqué : Légende vivante ! +20 points")
 
 def consume_item(key):
     """Consomme un exemplaire d'un consommable; s'assure que le compteur baisse."""
     if key in st.session_state.consumables and st.session_state.consumables[key] > 0:
         st.session_state.consumables[key] -= 1
-        # remove name from inventory_list if count becomes 0 (but only for consumables)
-        # inventory_list kept for display duplicates allowed — we'll rebuild display dynamically elsewhere
         return True
     return False
 
@@ -161,6 +178,10 @@ def inventory_display_list():
     items = []
     if st.session_state.has_hat:
         items.append("🎩 Chapeau magique")
+    # include pet if owned (egg or more) - if pet is not none and not already in inventory_list, show
+    if st.session_state.pet != "none" and "Animal virtuel" not in st.session_state.inventory_list:
+        # we add an entry to inventory_list when purchased (see shop logic) but keep it safe
+        pass
     for k, v in st.session_state.consumables.items():
         if v > 0:
             name = {
@@ -170,12 +191,26 @@ def inventory_display_list():
                 "boost_animal": "🚀 Boost Animal"
             }.get(k, k)
             items.append(f"{name} x{v}")
+    # show egg/animal if owned and not using inventory_list
+    if st.session_state.pet != "none":
+        # show actual stage name
+        pet_name = {
+            "egg": "🥚 Œuf de compagnon (possédé)",
+            "puppy": "🐶 Compagnon (chiot)",
+            "adult": "🐕 Compagnon (adulte)",
+            "legend": "🐕‍🦺✨ Compagnon (légendaire)"
+        }.get(st.session_state.pet, "Animal virtuel")
+        # ensure not duplicated
+        if pet_name not in items:
+            items.append(pet_name)
     return items
 
 # ---------------------------
 # BOUTIQUE : définition articles
 # ---------------------------
+# --- AJOUT: Œuf de compagnon en premier
 ARTICLES = [
+    {"key": "pet_egg", "nom": "🥚 Œuf de compagnon", "prix": 15, "desc": "Achetez un œuf qui éclos et devient un compagnon évolutif. (Unique)", "consumable": False, "special": "unlock_pet"},
     {"key": "chapeau", "nom": "🎩 Chapeau magique", "prix": 10, "desc": "Permanent : +1 point bonus par victoire (non consommable).", "consumable": False},
     {"key": "indice_pendu", "nom": "💡 Indice Pendu", "prix": 8, "desc": "Consommable: révèle une lettre dans le Pendu (1x).", "consumable": True},
     {"key": "aide_mastermind", "nom": "🎯 Aide Mastermind", "prix": 8, "desc": "Consommable: révèle la couleur correcte d'une position (1x).", "consumable": True},
@@ -186,8 +221,6 @@ ARTICLES = [
 # ---------------------------
 # MENU / HEADER
 # ---------------------------
-st.markdown("<h1 style='text-align:center'>Bienvenue sur mon site de jeux ✨</h1>", unsafe_allow_html=True)
-
 menu_items = ["Accueil", "Jeux externes", "Devine le nombre", "Pierre-Papier-Ciseaux", "Pendu", "Mastermind", "Mots mélangés", "Boutique", "Animal", "Succès"]
 if st.session_state.secret_unlocked:
     menu_items.append("Mini-jeu secret")
@@ -196,8 +229,18 @@ menu = st.radio("🎮 Choisis une section :", menu_items)
 st.markdown(f"**💰 Points : {st.session_state.points}**")
 st.write("Inventaire :", ", ".join(inventory_display_list()) if inventory_display_list() else "Aucun article")
 
+# ---------------------------
+# PAGES / JEUX
+# ---------------------------
+# 1) ACCUEIL
+if menu == "Accueil":
+    st.markdown("<h1 style='text-align:center'>Bienvenue sur mon site de jeux ✨</h1>", unsafe_allow_html=True)
+    name = st.text_input("Quel est votre nom ?")
+    if name:
+        st.success(f"Enchanté, {name} ! 😊")
+
 # 2) JEUX EXTERNES
-if menu == "Jeux externes":
+elif menu == "Jeux externes":
     st.header("🎮 Mes jeux externes")
     jeux = [
         {"titre": "cible", "desc": "As-tu le meilleur score ?", "lien": "https://zmwguswsyytnolqexffdfj.streamlit.app/"},
@@ -428,8 +471,23 @@ elif menu == "Boutique":
             st.write(f"**{art['nom']}** - {art['prix']} pts")
             st.caption(art['desc'])
         with col2:
-            # For chapeau, show owned boolean; for consumables show count
-            if art["key"] == "chapeau":
+            # For pet_egg and chapeau, show owned boolean; for consumables show count
+            if art["key"] == "pet_egg":
+                # --- AJOUT: Œuf de compagnon en premier et unique
+                if st.session_state.pet != "none":
+                    st.button("Acheté", key=f"bought_{art['key']}")
+                else:
+                    if st.button(f"Acheter", key=f"buy_{art['key']}"):
+                        if st.session_state.points >= art["prix"]:
+                            st.session_state.points -= art["prix"]
+                            # unlock pet egg immediately
+                            st.session_state.pet = "egg"
+                            if art["nom"] not in st.session_state.inventory_list:
+                                st.session_state.inventory_list.append(art["nom"])
+                            st.success("🥚 Tu as adopté un oeuf ! Va voir la page Animal pour t'en occuper.")
+                        else:
+                            st.error("❌ Pas assez de points.")
+            elif art["key"] == "chapeau":
                 if st.session_state.has_hat:
                     st.button("Acheté", key=f"bought_{art['key']}")
                 else:
@@ -532,4 +590,5 @@ elif menu == "Mini-jeu secret":
 # FOOTER
 # ---------------------------
 st.markdown("---")
-st.caption("Boutique améliorée : objets consommables et effets intégrés — tout en Python pour Streamlit Cloud")
+st.caption("Boutique améliorée : objet Œuf en premier, consommables et effets intégrés — tout en Python pour Streamlit Cloud")
+
