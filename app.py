@@ -61,7 +61,8 @@ jeux = [
     {"titre": "cible", "desc": "A tu fais le meilleure score ? tire vite.", "lien": "https://zmwguswsyytnolqexffdfj.streamlit.app/"},
     {"titre": "RPG", "desc": "Tuez le !", "lien": "https://je7erdurjykggnaagdzyzt.streamlit.app/"},
     {"titre": "Quiz", "desc": "répondez !!!", "lien": "https://hyu2irxjzdthppfbix6duf.streamlit.app/"},
-    {"titre": "Dé", "desc": "faites un plus grand nombre", "lien": "https://essaie-2-hcaltzcmtgndkwfuei7snk.streamlit.app/"}
+    {"titre": "Dé", "desc": "faites un plus grand nombre", "lien": "https://essaie-2-hcaltzcmtgndkwfuei7snk.streamlit.app/"},
+    {"titre": "Morpions", "desc": "joué contre une IA", "lien": "https://essaie-p44xbuapphmrcwqw65nys44.streamlit.app/"}
 ]
 for j in jeux:
     st.subheader(j["titre"])
