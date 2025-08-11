@@ -425,7 +425,7 @@ elif menu == "Mots mélangés":
             award_points(5, "Mots mélangés gagné")
             st.session_state.achievements.add("Décodeur")
             # reset
-            mots = ["python","streamlit","ordinateur","arcade","programmation","robot"]
+            mots = ["Papick","site","hongrie","choix","programmation","pourir"]
             st.session_state.mot_original = random.choice(mots)
             melange = list(st.session_state.mot_original)
             random.shuffle(melange)
