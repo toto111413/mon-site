@@ -27,12 +27,6 @@ st.markdown("""
         text-align: center;
         margin-bottom: 30px;
     }
-    .subtitle {
-        font-size: 24px;
-        color: #333;
-        text-align: center;
-        margin-bottom: 40px;
-    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -49,15 +43,22 @@ menu = st.radio(
 )
 st.markdown(f"**💰 Score global : {st.session_state.points} points**")
 
+# --- Fonction pour calculer bonus de points ---
+def bonus_points():
+    return 1 if "🎩 Chapeau magique" in st.session_state.inventaire else 0
+
+# --- Fonction pour effets de victoire ---
+def effets_victoire():
+    if "🐶 Animal virtuel" in st.session_state.inventaire:
+        st.image("https://place-puppy.com/200x200", caption="Votre fidèle compagnon 🐶")
+    if "🚀 Fusée miniature" in st.session_state.inventaire:
+        st.balloons()
+
 # --- Accueil ---
 if menu == "Accueil":
     name = st.text_input("Quel est votre nom ?")
     if name:
         st.success(f"Enchanté, {name} ! 😊")
-    if st.button("Dire bonjour"):
-        st.write("👋 Bonjour !")
-    if st.button("Clique si tu aimes"):
-        st.write("cool 😎")
 
 # --- Jeux externes ---
 elif menu == "Jeux externes":
@@ -82,8 +83,10 @@ elif menu == "Devine le nombre":
     if st.button("Vérifier"):
         st.session_state.essais += 1
         if guess == st.session_state.secret:
-            st.success(f"Bravo ! 🎉 Trouvé en {st.session_state.essais} essais.")
-            st.session_state.points += 5
+            gain = 5 + bonus_points()
+            st.session_state.points += gain
+            st.success(f"🎉 Bravo ! Trouvé en {st.session_state.essais} essais (+{gain} points)")
+            effets_victoire()
             st.session_state.secret = random.randint(1, 20)
             st.session_state.essais = 0
         elif guess < st.session_state.secret:
@@ -102,8 +105,10 @@ elif menu == "Pierre-Papier-Ciseaux":
         elif (choix == "Pierre" and bot == "Ciseaux") or \
              (choix == "Papier" and bot == "Pierre") or \
              (choix == "Ciseaux" and bot == "Papier"):
-            st.success("Gagné ! 🎉")
-            st.session_state.points += 2
+            gain = 2 + bonus_points()
+            st.session_state.points += gain
+            st.success(f"🎉 Gagné ! (+{gain} points)")
+            effets_victoire()
         else:
             st.error("Perdu 😢")
 
@@ -146,9 +151,10 @@ elif menu == "Pendu":
             st.warning("⚠️ Entrez une seule lettre valide.")
 
     if "_" not in mot_affiche:
-        st.balloons()
-        st.success(f"🎉 Bravo ! Tu as trouvé le mot **{mot_secret}** !")
-        st.session_state.points += 3
+        gain = 3 + bonus_points()
+        st.session_state.points += gain
+        st.success(f"🎉 Bravo ! Tu as trouvé le mot **{mot_secret}** (+{gain} points)")
+        effets_victoire()
         st.session_state.mot_secret = random.choice(mots_possibles)
         st.session_state.lettres_trouvees = []
         st.session_state.erreurs = 0
@@ -164,32 +170,52 @@ elif menu == "Boutique":
     st.header("🛒 Boutique des récompenses")
     st.write(f"💰 Vous avez actuellement **{st.session_state.points} points**.")
 
-    # Inventaire actuel
+    # Articles disponibles
+    articles = [
+        {"nom": "🎩 Chapeau magique", "prix": 10, "desc": "Augmente vos gains de points de 1 à chaque victoire."},
+        {"nom": "🐶 Animal virtuel", "prix": 15, "desc": "Fait apparaître un chien mignon après chaque victoire."},
+        {"nom": "🚀 Fusée miniature", "prix": 20, "desc": "Montre une animation de ballons après vos victoires."},
+        {"nom": "💎 Gemme rare", "prix": 50, "desc": "Objet de collection prestigieux."}
+    ]
+
+    # Inventaire
     st.subheader("🎁 Inventaire")
     if st.session_state.inventaire:
-        st.write(", ".join(st.session_state.inventaire))
+        for item in st.session_state.inventaire:
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.write(item)
+            with col2:
+                prix_revente = next(a["prix"] for a in articles if a["nom"] == item) // 2
+                if st.button(f"Revendre {item}", key=f"sell_{item}"):
+                    st.session_state.points += prix_revente
+                    st.session_state.inventaire.remove(item)
+                    st.success(f"💸 Vous avez revendu {item} pour {prix_revente} points.")
     else:
         st.write("Aucun article pour l'instant.")
 
     st.markdown("---")
 
-    # Liste des articles à vendre
-    articles = [
-        {"nom": "🎩 Chapeau magique", "prix": 10},
-        {"nom": "🐶 Animal virtuel", "prix": 15},
-        {"nom": "🚀 Fusée miniature", "prix": 20},
-        {"nom": "💎 Gemme rare", "prix": 50}
-    ]
-
+    # Liste à acheter
+    st.subheader("🛍️ Articles disponibles")
     for article in articles:
         col1, col2 = st.columns([3, 1])
         with col1:
             st.write(f"**{article['nom']}** - {article['prix']} points")
+            st.caption(article["desc"])
         with col2:
-            if st.button(f"Acheter {article['nom']}", key=article['nom']):
+            if st.button(f"Acheter {article['nom']}", key=f"buy_{article['nom']}"):
                 if st.session_state.points >= article["prix"]:
                     st.session_state.points -= article["prix"]
                     st.session_state.inventaire.append(article["nom"])
                     st.success(f"✅ Vous avez acheté {article['nom']} !")
+                    if article["nom"] == "🎩 Chapeau magique":
+                        st.balloons()
+                    elif article["nom"] == "🐶 Animal virtuel":
+                        st.image("https://place-puppy.com/200x200", caption="Votre nouveau compagnon 🐶")
+                    elif article["nom"] == "🚀 Fusée miniature":
+                        st.balloons()
+                    elif article["nom"] == "💎 Gemme rare":
+                        st.success("💎 Vous possédez maintenant un trésor rare.")
                 else:
                     st.error("❌ Pas assez de points.")
