@@ -9,9 +9,11 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- Initialisation du score global ---
+# --- Initialisation du score global et inventaire ---
 if "points" not in st.session_state:
     st.session_state.points = 0
+if "inventaire" not in st.session_state:
+    st.session_state.inventaire = []
 
 # --- CSS ---
 st.markdown("""
@@ -41,7 +43,10 @@ st.write("Bonjour ! Je suis un jeune développeur passionné par Python et les j
          "Amusez-vous bien !!!!!! 🎉")
 
 # --- Menu de navigation ---
-menu = st.radio("🎮 Choisis une section :", ["Accueil", "Jeux externes", "Devine le nombre", "Pierre-Papier-Ciseaux", "Pendu"])
+menu = st.radio(
+    "🎮 Choisis une section :",
+    ["Accueil", "Jeux externes", "Devine le nombre", "Pierre-Papier-Ciseaux", "Pendu", "Boutique"]
+)
 st.markdown(f"**💰 Score global : {st.session_state.points} points**")
 
 # --- Accueil ---
@@ -153,3 +158,38 @@ elif menu == "Pendu":
         st.session_state.mot_secret = random.choice(mots_possibles)
         st.session_state.lettres_trouvees = []
         st.session_state.erreurs = 0
+
+# --- Boutique ---
+elif menu == "Boutique":
+    st.header("🛒 Boutique des récompenses")
+    st.write(f"💰 Vous avez actuellement **{st.session_state.points} points**.")
+
+    # Inventaire actuel
+    st.subheader("🎁 Inventaire")
+    if st.session_state.inventaire:
+        st.write(", ".join(st.session_state.inventaire))
+    else:
+        st.write("Aucun article pour l'instant.")
+
+    st.markdown("---")
+
+    # Liste des articles à vendre
+    articles = [
+        {"nom": "🎩 Chapeau magique", "prix": 10},
+        {"nom": "🐶 Animal virtuel", "prix": 15},
+        {"nom": "🚀 Fusée miniature", "prix": 20},
+        {"nom": "💎 Gemme rare", "prix": 50}
+    ]
+
+    for article in articles:
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.write(f"**{article['nom']}** - {article['prix']} points")
+        with col2:
+            if st.button(f"Acheter {article['nom']}", key=article['nom']):
+                if st.session_state.points >= article["prix"]:
+                    st.session_state.points -= article["prix"]
+                    st.session_state.inventaire.append(article["nom"])
+                    st.success(f"✅ Vous avez acheté {article['nom']} !")
+                else:
+                    st.error("❌ Pas assez de points.")
