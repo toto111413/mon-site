@@ -8,7 +8,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
+ st.markdown("<h1 style='text-align:center'>Bienvenue sur mon site de jeux ✨</h1>", unsafe_allow_html=True)
 # ---------------------------
 # INITIALISATIONS SESSION
 # ---------------------------
@@ -116,7 +116,6 @@ st.markdown(f"**💰 Points : {st.session_state.points}**")
 # ACCUEIL
 # ---------------------------
 if menu == "Accueil":
-    st.markdown("<h1 style='text-align:center'>Bienvenue sur mon site de jeux ✨</h1>", unsafe_allow_html=True)
     name = st.text_input("Quel est votre nom ?")
     if name:
         st.success(f"Enchanté, {name} ! 😊")
