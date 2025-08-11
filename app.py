@@ -8,7 +8,16 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
- st.markdown("<h1 style='text-align:center'>Bienvenue sur mon site de jeux ✨</h1>", unsafe_allow_html=True)
+# --- Header ---
+st.markdown('<div class="title">Bienvenue sur mon site de jeux en ligne ✨</div>', unsafe_allow_html=True)
+st.write("""
+
+Bonjour ! Je suis un jeune développeur passionné par Python et les jeux vidéos.
+
+Ce site vous permet de jouer en ligne à mes créations
+
+Amusez vous bien !!!!!! 🎉
+""")
 # ---------------------------
 # INITIALISATIONS SESSION
 # ---------------------------
