@@ -436,8 +436,8 @@ elif tab == "Jeux internes":
                 st.error("Perdu 😢")
 
 
-elif game == "Pendu":
-    st.subheader("🪢 Pendu amélioré")
+    elif game == "Pendu":
+        st.subheader("🪢 Pendu amélioré")
 
     # Initialisation des variables de session
     if "mot_secret" not in st.session_state:
