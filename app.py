@@ -4,6 +4,17 @@ import random
 import json
 from typing import Dict, List
 
+    # --- Étapes du pendu (globales) ---
+pendu_etapes = [
+    "+---+\n    |\n    |\n    |\n   ===",
+    "+---+\nO   |\n    |\n    |\n   ===",
+    "+---+\nO   |\n|   |\n    |\n   ===",
+    "+---+\nO   |\n/|  |\n    |\n   ===",
+    "+---+\nO   |\n/|\\ |\n    |\n   ===",
+    "+---+\nO   |\n/|\\ |\n/   |\n   ===",
+    "+---+\nO   |\n/|\\ |\n/ \\ |\n   ==="
+]
+
 # --- SAUVEGARDE / GOOGLE SHEETS SETUP ---
 use_sheets = False
 gc = None
@@ -424,16 +435,6 @@ elif tab == "Jeux internes":
             else:
                 st.error("Perdu 😢")
 
-    # --- Étapes du pendu (globales) ---
-pendu_etapes = [
-    "+---+\n    |\n    |\n    |\n   ===",
-    "+---+\nO   |\n    |\n    |\n   ===",
-    "+---+\nO   |\n|   |\n    |\n   ===",
-    "+---+\nO   |\n/|  |\n    |\n   ===",
-    "+---+\nO   |\n/|\\ |\n    |\n   ===",
-    "+---+\nO   |\n/|\\ |\n/   |\n   ===",
-    "+---+\nO   |\n/|\\ |\n/ \\ |\n   ==="
-]
 
 elif game == "Pendu":
     st.subheader("🪢 Pendu amélioré")
