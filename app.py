@@ -10,7 +10,10 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
+st.markdown("<h1 style='text-align:center'>Bienvenue sur mon site de jeux ✨</h1>", unsafe_allow_html=True)
+    name = st.text_input("Quel est votre nom ?")
+    if name:
+        st.success(f"Enchanté, {name} ! 😊")
 # ---------------------------
 # INITIALISATIONS SESSION
 # ---------------------------
@@ -194,16 +197,6 @@ if st.session_state.secret_unlocked:
 menu = st.radio("🎮 Choisis une section :", menu_items)
 st.markdown(f"**💰 Points : {st.session_state.points}**")
 st.write("Inventaire :", ", ".join(inventory_display_list()) if inventory_display_list() else "Aucun article")
-
-# ---------------------------
-# PAGES / JEUX
-# ---------------------------
-# 1) ACCUEIL
-if menu == "Accueil":
-    st.markdown("<h1 style='text-align:center'>Bienvenue sur mon site de jeux ✨</h1>", unsafe_allow_html=True)
-    name = st.text_input("Quel est votre nom ?")
-    if name:
-        st.success(f"Enchanté, {name} ! 😊")
 
 # 2) JEUX EXTERNES
 elif menu == "Jeux externes":
