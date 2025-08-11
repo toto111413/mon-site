@@ -197,7 +197,7 @@ st.markdown(f"**💰 Points : {st.session_state.points}**")
 st.write("Inventaire :", ", ".join(inventory_display_list()) if inventory_display_list() else "Aucun article")
 
 # 2) JEUX EXTERNES
-elif menu == "Jeux externes":
+if menu == "Jeux externes":
     st.header("🎮 Mes jeux externes")
     jeux = [
         {"titre": "cible", "desc": "As-tu le meilleur score ?", "lien": "https://zmwguswsyytnolqexffdfj.streamlit.app/"},
