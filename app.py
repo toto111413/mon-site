@@ -435,7 +435,7 @@ pendu_etapes = [
     "+---+\nO   |\n/|\\ |\n/ \\ |\n   ==="
 ]
 
-elif game == "Pendu":
+else game == "Pendu":
     st.subheader("🪢 Pendu amélioré")
 
     # Initialisation des variables de session
