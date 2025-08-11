@@ -426,7 +426,7 @@ elif tab == "Jeux internes":
 
     # Pendu
    elif game == "Pendu":
-    st.subheader("🪢 Pendu amélioré")
+       st.subheader("🪢 Pendu amélioré")
 
     # Dessins du pendu
     pendu_etapes = [
