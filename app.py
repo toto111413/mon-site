@@ -1,45 +1,30 @@
 import streamlit as st
-import random
+import gspread
+from google.oauth2.service_account import Credentials
 import json
-from typing import Dict
+import os
 
-# --- SAUVEGARDE / GOOGLE SHEETS SETUP ---
-use_sheets = False
-gc = None
-sheet = None
-if "GOOGLE_SHEETS_KEY" in st.secrets and "SHEET_NAME" in st.secrets:
-    try:
-        import gspread
-        from google.oauth2.service_account import Credentials
+SHEET_NAME = "sauvegarde"
+
+def get_gsheet_client():
+    # Si on est sur Streamlit Cloud (st.secrets existe)
+    if "GOOGLE_SHEETS_KEY" in st.secrets:
         creds_dict = json.loads(st.secrets["GOOGLE_SHEETS_KEY"])
-        creds = Credentials.from_service_account_info(
-            creds_dict, 
-            scopes=["https://www.googleapis.com/auth/spreadsheets"]
-        )
-        gc = gspread.authorize(creds)
-        sheet = gc.open(st.secrets["SHEET_NAME"]).sheet1
-        use_sheets = True
-    except Exception as e:
-        st.warning("La connexion Google Sheets a échoué : " + str(e))
-        use_sheets = False
-else:
-    st.info("Google Sheets non configuré dans st.secrets → la sauvegarde automatique est désactivée.")
+        creds = Credentials.from_service_account_info(creds_dict)
+    # Sinon, on est en local → credentials.json
+    elif os.path.exists("credentials.json"):
+        creds = Credentials.from_service_account_file("credentials.json")
+    else:
+        st.error("❌ Aucune clé Google Sheets trouvée.")
+        return None
+    
+    return gspread.authorize(creds)
 
-# --- TEST GOOGLE SHEETS ---
-if use_sheets and sheet:
-    st.sidebar.markdown("### 📄 Test Google Sheets")
-    try:
-        data = sheet.get_all_records()
-        if data:
-            st.sidebar.success("✅ Lecture réussie !")
-            st.sidebar.write("Aperçu des 5 premières lignes :")
-            st.sidebar.write(data[:5])
-        else:
-            st.sidebar.warning("La feuille est vide.")
-    except Exception as e:
-        st.sidebar.error(f"Erreur lors de la lecture : {e}")
-else:
-    st.sidebar.info("Google Sheets non actif → test ignoré.")
+# Connexion à Google Sheets
+client = get_gsheet_client()
+if client:
+    sheet = client.open(SHEET_NAME).sheet1
+    st.success("✅ Connecté à Google Sheets !")
 # ---------------------------
 # CONFIG PAGE
 # ---------------------------
