@@ -781,4 +781,5 @@ if st.button("Sauvegarder maintenant"):
 st.caption("Version finale : onglets, boutique améliorée, animal virtuel, succès, et sauvegarde Google Sheets (optionnelle).")
 
 
+
         
