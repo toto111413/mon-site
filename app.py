@@ -4,7 +4,7 @@ import streamlit as st
 from google.oauth2.service_account import Credentials
 
 # Charger la clé depuis secrets
-creds_dict = json.loads(st.secrets["GOOGLE_SHEETS_KEY"])
+creds_dict = json.loads(st.secrets["GOOGLE_SHEETS_KEY"]) 
 creds = Credentials.from_service_account_info(creds_dict, scopes=["https://www.googleapis.com/auth/spreadsheets"])
 client = gspread.authorize(creds)
 
