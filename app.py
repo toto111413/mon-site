@@ -1,30 +1,28 @@
+# app.py - version finale avec onglets + Google Sheets save/load
 import streamlit as st
-import gspread
-from google.oauth2.service_account import Credentials
+import random
 import json
-import os
+from typing import Dict
 
-SHEET_NAME = "sauvegarde"
-
-def get_gsheet_client():
-    # Si on est sur Streamlit Cloud (st.secrets existe)
-    if "GOOGLE_SHEETS_KEY" in st.secrets:
+# --- SAUVEGARDE / GOOGLE SHEETS SETUP ---
+use_sheets = False
+gc = None
+sheet = None
+if "GOOGLE_SHEETS_KEY" in st.secrets and "SHEET_NAME" in st.secrets:
+    try:
+        import gspread
+        from google.oauth2.service_account import Credentials
         creds_dict = json.loads(st.secrets["GOOGLE_SHEETS_KEY"])
-        creds = Credentials.from_service_account_info(creds_dict)
-    # Sinon, on est en local → credentials.json
-    elif os.path.exists("credentials.json"):
-        creds = Credentials.from_service_account_file("credentials.json")
-    else:
-        st.error("❌ Aucune clé Google Sheets trouvée.")
-        return None
-    
-    return gspread.authorize(creds)
+        creds = Credentials.from_service_account_info(creds_dict, scopes=["https://www.googleapis.com/auth/spreadsheets"])
+        gc = gspread.authorize(creds)
+        sheet = gc.open(st.secrets["SHEET_NAME"]).sheet1
+        use_sheets = True
+    except Exception as e:
+        st.warning("La connexion Google Sheets a échoué : " + str(e))
+        use_sheets = False
+else:
+    st.info("Google Sheets non configuré dans st.secrets → la sauvegarde automatique est désactivée.")
 
-# Connexion à Google Sheets
-client = get_gsheet_client()
-if client:
-    sheet = client.open(SHEET_NAME).sheet1
-    st.success("✅ Connecté à Google Sheets !")
 # ---------------------------
 # CONFIG PAGE
 # ---------------------------
@@ -782,6 +780,3 @@ if st.button("Sauvegarder maintenant"):
 
 st.caption("Version finale : onglets, boutique améliorée, animal virtuel, succès, et sauvegarde Google Sheets (optionnelle).")
 
-
-
-        
