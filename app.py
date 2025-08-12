@@ -1,4 +1,3 @@
-# app.py - version finale avec onglets + Google Sheets save/load
 import streamlit as st
 import random
 import json
@@ -13,7 +12,10 @@ if "GOOGLE_SHEETS_KEY" in st.secrets and "SHEET_NAME" in st.secrets:
         import gspread
         from google.oauth2.service_account import Credentials
         creds_dict = json.loads(st.secrets["GOOGLE_SHEETS_KEY"])
-        creds = Credentials.from_service_account_info(creds_dict, scopes=["https://www.googleapis.com/auth/spreadsheets"])
+        creds = Credentials.from_service_account_info(
+            creds_dict, 
+            scopes=["https://www.googleapis.com/auth/spreadsheets"]
+        )
         gc = gspread.authorize(creds)
         sheet = gc.open(st.secrets["SHEET_NAME"]).sheet1
         use_sheets = True
@@ -23,6 +25,21 @@ if "GOOGLE_SHEETS_KEY" in st.secrets and "SHEET_NAME" in st.secrets:
 else:
     st.info("Google Sheets non configuré dans st.secrets → la sauvegarde automatique est désactivée.")
 
+# --- TEST GOOGLE SHEETS ---
+if use_sheets and sheet:
+    st.sidebar.markdown("### 📄 Test Google Sheets")
+    try:
+        data = sheet.get_all_records()
+        if data:
+            st.sidebar.success("✅ Lecture réussie !")
+            st.sidebar.write("Aperçu des 5 premières lignes :")
+            st.sidebar.write(data[:5])
+        else:
+            st.sidebar.warning("La feuille est vide.")
+    except Exception as e:
+        st.sidebar.error(f"Erreur lors de la lecture : {e}")
+else:
+    st.sidebar.info("Google Sheets non actif → test ignoré.")
 # ---------------------------
 # CONFIG PAGE
 # ---------------------------
